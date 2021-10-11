@@ -30,12 +30,13 @@ class TableViewCell: UITableViewCell {
     }()
     
     private let favoriteButton: UIButton = {
-       let button = UIButton()
+        let button = UIButton()
         button.setImage(UIImage(systemName: "star"), for: .normal)
         button.addTarget(self, action: #selector(markingAsFavorite), for: .touchUpInside)
-        button.isEnabled = true
         return button
     }()
+    
+    var isFavorite = false
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -67,5 +68,12 @@ class TableViewCell: UITableViewCell {
     
     @objc func markingAsFavorite() {
         print("marked as favorite")
+        if isFavorite {
+            self.favoriteButton.setImage(UIImage(systemName: "star"), for: .normal)
+            isFavorite = false
+        } else {
+            self.favoriteButton.setImage(UIImage(systemName: "star.fill"), for: .normal)
+            isFavorite = true
+        }
     }
 }

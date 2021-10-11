@@ -12,6 +12,9 @@ class MovieDescriptionViewController: UIViewController {
     var movie: Movie?
     
     let scene = MovieDescriptinScene()
+    
+    var isFavorite = false
+    
     override func viewDidLoad() {
         self.view = scene
         scene.navigationRef = self.navigationController?.navigationBar.bottomAnchor
@@ -20,6 +23,16 @@ class MovieDescriptionViewController: UIViewController {
         scene.movieImage.load(url: url)
         scene.movieDescriptionTextView.text = movie?.overview
         
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "star"), style: .plain, target: self, action: nil)
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "star"), style: .plain, target: self, action: #selector(markAsFavorite))
+    }
+    
+    @objc func markAsFavorite() {
+        if isFavorite {
+            self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "star")
+            isFavorite = false
+        } else {
+            self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "star.fill")
+            isFavorite = true
+        }
     }
 }

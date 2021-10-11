@@ -1,5 +1,5 @@
 //
-//  FilmModel.swift
+//  MovieModel.swift
 //  iosTest
 //
 //  Created by Nathalia Cardoso on 08/10/21.
@@ -8,19 +8,19 @@
 import Foundation
 
 struct Movie: Decodable {
-    //let adult: Int
+    //let adult: Bool
     //let backdrop_path: String
-    //let genre_ids: (Int)
+    //let genre_ids: [Int]
     //let id: Int
     //let original_language: String
     //let original_title: String
     let overview: String
-    //let popularity: String
+    //let popularity: Double
     let poster_path: String
     //let release_date: String
     let title: String
-    //let video: Int
-    //let vote_average: String
+    //let video: Bool
+    //let vote_average: Float
     //let vote_count: Int
     
     enum CodingKeys: String, CodingKey {

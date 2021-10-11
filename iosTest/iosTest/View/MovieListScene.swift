@@ -14,6 +14,8 @@ class MovieListScene: UIView {
     var controller: MovieListViewController?
     var movies: [Movie] = []
     let tableView = UITableView()
+    var currentPage = 1
+    var totalPages = 1
     let searchBarController: UISearchController = {
         let searchBarController = UISearchController(searchResultsController: nil)
         
@@ -27,17 +29,12 @@ class MovieListScene: UIView {
     
     let searchBar = UISearchBar()
     
-    private let paginatorButton: UIButton = {
-       let button = UIButton()
-        button.setTitleColor(.systemBlue, for: .normal)
-        button.setTitle("próxima pagina >", for: .normal)
-        return button
-    }()
-    
     let paginatorLabel: UILabel = {
         let label = UILabel()
         label.text = "Página 1"
         label.textColor = .black
+        label.numberOfLines = 0
+        label.sizeToFit()
         label.font = UIFont.boldSystemFont(ofSize: 17)
         label.textAlignment = .center
         return label
@@ -47,7 +44,7 @@ class MovieListScene: UIView {
         let button = UIButton()
          button.setTitleColor(.systemBlue, for: .normal)
          button.setTitle("próxima >", for: .normal)
-        button.addTarget(self, action: #selector(goToNextPage), for: .touchUpInside)
+         button.addTarget(self, action: #selector(goToNextPage), for: .touchUpInside)
          return button
     }()
     
@@ -55,6 +52,7 @@ class MovieListScene: UIView {
         let button = UIButton()
          button.setTitleColor(.systemBlue, for: .normal)
          button.setTitle("< anterior", for: .normal)
+         button.isHidden = true
          button.addTarget(self, action: #selector(goToPreviousPage), for: .touchUpInside)
          return button
     }()
@@ -146,17 +144,41 @@ class MovieListScene: UIView {
     }
     
     @objc func goToNextPage() {
-        print("proxima pagina")
+        if currentPage < totalPages {
+            currentPage += 1
+            if currentPage == 2 {
+                previousButton.isHidden = false
+            }
+            if currentPage == totalPages {
+                nextButton.isHidden = true
+            }
+            fetchMovies()
+        }
+        
     }
     
     @objc func goToPreviousPage() {
-        print("pagina anterior")
+        if (currentPage > 1) && (currentPage <= totalPages) {
+            currentPage -= 1
+            if currentPage == 1 {
+                previousButton.isHidden = true
+            }
+            if currentPage == totalPages-1 {
+                nextButton.isHidden = false
+            }
+            fetchMovies()
+        }
     }
     // "https://api.themoviedb.org/3/movie/now_playing?api_key=c2e78b4a8c14e65dd6e27504e6df95ad&language=pt-BR"
     func fetchMovies() {
-        AF.request("https://api.themoviedb.org/3/movie/now_playing?api_key=c2e78b4a8c14e65dd6e27504e6df95ad&language=pt-BR").validate().responseDecodable(of: Movies.self) { (response) in
+        AF.request("https://api.themoviedb.org/3/movie/now_playing?api_key=c2e78b4a8c14e65dd6e27504e6df95ad&language=pt-BR&page=\(String(self.currentPage))").validate().responseDecodable(of: Movies.self) { (response) in
+            if response.value == nil {
+                self.paginatorLabel.text = "Página \(self.currentPage)\nnão encontrada"
+            }
             guard let movies = response.value else { return }
             self.movies = movies.allMovies
+            self.totalPages = movies.total_pages
+            self.paginatorLabel.text = "Página \(self.currentPage)"
             self.tableView.reloadData()
         }
     }
