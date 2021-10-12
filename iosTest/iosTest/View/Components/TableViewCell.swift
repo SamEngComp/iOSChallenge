@@ -13,7 +13,7 @@ class TableViewCell: UITableViewCell {
     let movieNameLabel: UILabel = {
         let label = UILabel()
         label.text = "empty"
-        label.textColor = .black
+        label.textColor = .label
         label.font = UIFont.boldSystemFont(ofSize: 15)
         label.numberOfLines = 0
         label.textAlignment = .left
@@ -36,7 +36,11 @@ class TableViewCell: UITableViewCell {
         return button
     }()
     
-    var isFavorite = false
+    private var isFavorite = false
+    
+    var movie: Movie?
+    
+    var controller: MovieListViewController?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -50,6 +54,16 @@ class TableViewCell: UITableViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func fillFavoriteButton() {
+        self.favoriteButton.setImage(UIImage(systemName: "star.fill"), for: .normal)
+        self.isFavorite = true
+    }
+    
+    func unfillFavoriteButton() {
+        self.favoriteButton.setImage(UIImage(systemName: "star"), for: .normal)
+        self.isFavorite = false
     }
     
     override func layoutSubviews() {
@@ -67,13 +81,14 @@ class TableViewCell: UITableViewCell {
     }
     
     @objc func markingAsFavorite() {
-        print("marked as favorite")
+        guard let movie = self.movie else { return }
         if isFavorite {
-            self.favoriteButton.setImage(UIImage(systemName: "star"), for: .normal)
-            isFavorite = false
+            self.unfillFavoriteButton()
+            self.controller?.markFavorite(isFavorite: isFavorite, movie: movie)
+            
         } else {
-            self.favoriteButton.setImage(UIImage(systemName: "star.fill"), for: .normal)
-            isFavorite = true
+            self.fillFavoriteButton()
+            self.controller?.markFavorite(isFavorite: isFavorite, movie: movie)
         }
     }
 }

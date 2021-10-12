@@ -24,17 +24,12 @@ class CoreDataManager {
         }
     }
     
-    func createFavoriteMovie(movie: MovieModelParse) {
+    func createFavoriteMovie(movie: Movie) {
         let favoriteMovie = FavoriteMovie(context: viewContext)
         favoriteMovie.overview = movie.overview
         favoriteMovie.title = movie.title
         favoriteMovie.id = Int32(movie.id)
-        favoriteMovie.poster_img = movie.poster_img
-//        if let url = URL(string: "https://image.tmdb.org/t/p/w500\(movie.poster_path)") {
-//            if let data = try? Data(contentsOf: url) {
-//                favoriteMovie.poster_img = data
-//            }
-//        }
+        favoriteMovie.poster_img = movie.poster_path
         self.save()
     }
     
@@ -84,11 +79,26 @@ class CoreDataManager {
         return favMovie
     }
     
-    func parse(favoriteMovie: FavoriteMovie) -> MovieModelParse {
-        return  MovieModelParse(id: Int(favoriteMovie.id),
-                                title: favoriteMovie.title ?? "",
-                                overview: favoriteMovie.overview ?? "",
-                                poster_img: favoriteMovie.poster_img ?? Data())
+    func fetchMovieByName(name: String) -> [FavoriteMovie] {
+        
+        let fetchMovies = self.fetchAll()
+        var movies: [FavoriteMovie] = []
+        
+        fetchMovies.forEach { movie in
+            if let movieTitle = movie.title {
+                if movieTitle.contains(name) {
+                    movies.append(movie)
+                }
+            }
+        }
+        return movies
+    }
+    
+    func parse(favoriteMovie: FavoriteMovie) -> Movie {
+        return  Movie(id: Int(favoriteMovie.id),
+                      overview: favoriteMovie.overview ?? "",
+                      poster_path: favoriteMovie.poster_img ?? "",
+                      title: favoriteMovie.title ?? "")
         
     }
 }

@@ -21,19 +21,5 @@ class APIManager {
             
         }
     }
-    
-    func parse(movie: Movie) -> MovieModelParse {
-        var posterImgData = Data()
-        if let url = URL(string: "https://image.tmdb.org/t/p/w500\(movie.poster_path)") {
-            if let data = try? Data(contentsOf: url) {
-                posterImgData = data
-            }
-        }
-        return  MovieModelParse(id: Int(movie.id),
-                                title: movie.title,
-                                overview: movie.overview,
-                                poster_img: posterImgData)
-        
-    }
 
 }

@@ -20,7 +20,7 @@ class MovieDescriptinScene: UIView {
     
     private let movieDescriptionTextView: UITextView = {
         let textView = UITextView()
-        textView.textColor = .black
+        textView.textColor = .label
         textView.isEditable = false
         textView.font = UIFont.boldSystemFont(ofSize: 14)
         textView.textAlignment = .justified
@@ -29,7 +29,7 @@ class MovieDescriptinScene: UIView {
     
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.textColor = .black
+        label.textColor = .label
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.numberOfLines = 0
         label.textAlignment = .center
@@ -39,7 +39,7 @@ class MovieDescriptinScene: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.backgroundColor = .white
+        self.backgroundColor = .systemBackground
         
         addSubview(titleLabel)
         addSubview(movieImage)
@@ -55,8 +55,8 @@ class MovieDescriptinScene: UIView {
         self.titleLabel.text = title
     }
     
-    func setMovieImage(data: Data) {
-        self.movieImage.image = UIImage(data: data)
+    func setMovieImage(url: URL) {
+        self.movieImage.load(url: url)
     }
     
     func setMovieDescriptionText(descriptionText: String?) {

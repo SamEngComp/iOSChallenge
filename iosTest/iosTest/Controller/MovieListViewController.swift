@@ -12,30 +12,36 @@ class MovieListViewController: UIViewController {
     
     private let apiManager = APIManager()
     private let scene = MovieListScene()
-    let coreDataManager = CoreDataManager()
-    let search = UISearchController(searchResultsController: nil)
-    private var movies: [MovieModelParse] = []
+    private let coreDataManager = CoreDataManager()
+    private let search = UISearchController(searchResultsController: nil)
+    private var movies: [Movie] = []
+    private var allMovies: [Movie] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
         self.view = scene
         scene.controller = self
+        scene.favoriteMovies = loadFavorites()
 
         self.setupNavigation()
         self.fetchMovies(currentPage: 1)
         self.setUpSearchBar()
     }
     
-    func setupNavigation() {
+    override func viewWillAppear(_ animated: Bool) {
+        self.tableContent()
+    }
+    
+    private func setupNavigation() {
         self.navigationController?.navigationBar.isTranslucent = false
-        navigationController?.view.backgroundColor = .white
+        navigationController?.view.backgroundColor = .systemBackground
         self.navigationController?.navigationBar.prefersLargeTitles = true
         self.navigationController?.navigationItem.largeTitleDisplayMode = .never
         self.title = "Filmes em cartaz"
     }
     
-    func showMovieDecription(movie: MovieModelParse) {
+    func showMovieDecription(movie: Movie) {
         let movieDescriptionViewController = MovieDescriptionViewController()
         movieDescriptionViewController.movie = movie
         self.navigationController?.pushViewController(movieDescriptionViewController, animated: false)
@@ -44,21 +50,47 @@ class MovieListViewController: UIViewController {
     func fetchMovies(currentPage: Int) {
         self.apiManager.getMovies(currentPage: currentPage) { result in
             if let result = result {
-                result.allMovies.forEach({ movie in
-                    self.movies.append(self.apiManager.parse(movie: movie))
-                })
-                self.scene.setupScene(allMovies: self.movies, totalPages: result.total_pages)
+                self.movies = result.allMovies
+                self.scene.setupScene(allMovies: result.allMovies, totalPages: result.total_pages)
+                self.allMovies = self.movies
             } else {
                 self.scene.notFoundPage()
             }
         }
+    }
+    
+    func markFavorite(isFavorite: Bool, movie: Movie) {
+        if isFavorite {
+            coreDataManager.createFavoriteMovie(movie: movie)
+        } else {
+            coreDataManager.remove(id: Int32(movie.id))
+        }
+    }
+    
+    func loadFavorites() -> [Movie] {
+        var favoriteMovies: [Movie] = []
+        coreDataManager.fetchAll().forEach { movie in
+            favoriteMovies.append(coreDataManager.parse(favoriteMovie: movie))
+        }
+        
+        return favoriteMovies
+    }
+    
+    func searchFavoriteMovies(name: String) -> [Movie] {
+        var moviesResult: [Movie] = []
+        movies.forEach { movie in
+            if movie.title.contains(name) {
+                moviesResult.append(movie)
+            }
+        }
+        return moviesResult
     }
 
 }
 
 extension MovieListViewController: UISearchResultsUpdating {
 
-    func setUpSearchBar() {
+    private func setUpSearchBar() {
         
         search.searchBar.placeholder = "Pesquisar"
         search.searchBar.setValue("Cancelar", forKey: "cancelButtonText")
@@ -71,12 +103,35 @@ extension MovieListViewController: UISearchResultsUpdating {
     }
     
     func updateSearchResults(for searchController: UISearchController) {
-//        if search.searchBar.selectedScopeButtonIndex == 1 {
-//            scene.setMovies(movies: <#T##[Movie]#>)  coreDataManager.fetchAll()
-//        } else {
-//
-//        }
         
+        guard let nomeSearch = searchController.searchBar.text else { return }
+        
+        if !nomeSearch.isEmpty {
+            if search.searchBar.selectedScopeButtonIndex == 1 {
+                self.movies = []
+                let moviesRequest = coreDataManager.fetchMovieByName(name: nomeSearch)
+                moviesRequest.forEach({ movie in
+                    self.movies.append(coreDataManager.parse(favoriteMovie: movie))
+                })
+                scene.setMovies(movies: movies)
+                
+            } else {
+                scene.setMovies(movies: self.searchFavoriteMovies(name: nomeSearch))
+            }
+        } else {
+            self.movies = self.allMovies
+            tableContent()
+        }
+    }
+    
+    private func tableContent() {
+        if search.searchBar.selectedScopeButtonIndex == 1 {
+            scene.setMovies(movies: self.loadFavorites())
+            scene.paginator(isHidden: true)
+        } else {
+            scene.setMovies(movies: movies)
+            scene.paginator(isHidden: false)
+        }
     }
     
 }

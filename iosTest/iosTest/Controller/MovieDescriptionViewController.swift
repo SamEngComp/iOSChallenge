@@ -9,7 +9,7 @@ import UIKit
 
 class MovieDescriptionViewController: UIViewController {
     
-    var movie: MovieModelParse?
+    var movie: Movie?
     
     let scene = MovieDescriptinScene()
     let coreDataManager = CoreDataManager()
@@ -21,7 +21,6 @@ class MovieDescriptionViewController: UIViewController {
         self.view = scene
         
         self.setupScene()
-        print(coreDataManager.fetchAll())
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "star"), style: .plain, target: self, action: #selector(markAsFavorite))
         if let movie = self.movie {
             if coreDataManager.fetchID(id: Int32(movie.id)) != nil {
@@ -34,10 +33,9 @@ class MovieDescriptionViewController: UIViewController {
     func setupScene() {
         guard let movie = movie else {return}
         scene.setTitleLabel(title: movie.title)
-//        if let url = URL(string: "https://image.tmdb.org/t/p/w500\(movie!.poster_path)") {
-//            scene.setMovieImage(url: url)
-//        }
-        scene.setMovieImage(data: movie.poster_img)
+        if let url = URL(string: "https://image.tmdb.org/t/p/w500\(movie.poster_path)") {
+            scene.setMovieImage(url: url)
+        }
         scene.setMovieDescriptionText(descriptionText: movie.overview)
         
     }

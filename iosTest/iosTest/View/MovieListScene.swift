@@ -11,20 +11,22 @@ import UIKit
 class MovieListScene: UIView {
     
     var controller: MovieListViewController?
-    private var movies: [MovieModelParse] = [] {
+    private var movies: [Movie] = [] {
         didSet {
             self.paginatorLabel.text = "Página \(currentPage)"
+            self.favoriteMovies = self.controller?.loadFavorites() ?? []
             tableView.reloadData()
         }
     }
+    var favoriteMovies: [Movie] = []
     private let tableView = UITableView()
     private var currentPage = 1
-    private var totalPages = 1
+    private var totalPages = 2
     
     let paginatorLabel: UILabel = {
         let label = UILabel()
         label.text = "Página 1"
-        label.textColor = .black
+        label.textColor = .label
         label.numberOfLines = 0
         label.sizeToFit()
         label.font = UIFont.boldSystemFont(ofSize: 17)
@@ -65,7 +67,7 @@ class MovieListScene: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setupScene(allMovies: [MovieModelParse], totalPages: Int) {
+    func setupScene(allMovies: [Movie], totalPages: Int) {
         self.movies = allMovies
         self.totalPages = totalPages
     }
@@ -75,7 +77,7 @@ class MovieListScene: UIView {
         self.paginatorLabel.text = "Página \(currentPage)\nnão encontrada"
     }
     
-    func setMovies(movies: [MovieModelParse]) {
+    func setMovies(movies: [Movie]) {
         self.movies = movies
     }
     
@@ -159,6 +161,25 @@ class MovieListScene: UIView {
         }
     }
     
+    func paginator(isHidden : Bool) {
+        self.paginatorLabel.isHidden = isHidden
+        if currentPage == 1 {
+            previousButton.isHidden = true
+        } else {
+            self.previousButton.isHidden = isHidden
+        }
+        
+        if currentPage == totalPages {
+            nextButton.isHidden = true
+        } else {
+            self.nextButton.isHidden = isHidden
+        }
+    }
+    
+    func markFavorite(isFavorite: Bool, movie: Movie) {
+        self.controller?.markFavorite(isFavorite: isFavorite, movie: movie)
+    }
+    
 }
 
 extension MovieListScene: UITableViewDelegate, UITableViewDataSource {
@@ -168,12 +189,19 @@ extension MovieListScene: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "cellId", for: indexPath) as! TableViewCell
         cell.movieNameLabel.text = movies[indexPath.row].title
-//        if let url = URL(string: "https://image.tmdb.org/t/p/w500\(movies[indexPath.row].poster_path)") {
-//            cell.movieImage.load(url: url) // failed to log metrics
-//        }
-        cell.movieImage.image = UIImage(data: movies[indexPath.row].poster_img)
+        cell.movie = movies[indexPath.row]
+        cell.controller = self.controller
+        if favoriteMovies.contains(where: { $0.id == movies[indexPath.row].id }) {
+            cell.fillFavoriteButton()
+        } else {
+            cell.unfillFavoriteButton()
+        }
+        if let url = URL(string: "https://image.tmdb.org/t/p/w500\(movies[indexPath.row].poster_path)") {
+            cell.movieImage.load(url: url) // failed to log metrics
+        }
         return cell
     }
     
@@ -186,16 +214,4 @@ extension MovieListScene: UITableViewDelegate, UITableViewDataSource {
     }
 }
 
-extension UIImageView {
-    func load(url: URL) {
-        DispatchQueue.global().async { [weak self] in
-            if let data = try? Data(contentsOf: url) {
-                if let image = UIImage(data: data) {
-                    DispatchQueue.main.async {
-                        self?.image = image
-                    }
-                }
-            }
-        }
-    }
-}
+
