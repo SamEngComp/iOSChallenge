@@ -7,27 +7,19 @@
 
 import Foundation
 import UIKit
-import Alamofire
 
 class MovieListScene: UIView {
     
     var controller: MovieListViewController?
-    var movies: [Movie] = []
-    let tableView = UITableView()
-    var currentPage = 1
-    var totalPages = 1
-    let searchBarController: UISearchController = {
-        let searchBarController = UISearchController(searchResultsController: nil)
-        
-        searchBarController.obscuresBackgroundDuringPresentation = false
-        searchBarController.searchBar.placeholder = "Pesquisar"
-        searchBarController.searchBar.sizeToFit()
-        searchBarController.searchBar.searchBarStyle = .prominent
-        searchBarController.searchBar.scopeButtonTitles = ["Todos", "Favoritos"]
-        return searchBarController
-    }()
-    
-    let searchBar = UISearchBar()
+    private var movies: [MovieModelParse] = [] {
+        didSet {
+            self.paginatorLabel.text = "Página \(currentPage)"
+            tableView.reloadData()
+        }
+    }
+    private let tableView = UITableView()
+    private var currentPage = 1
+    private var totalPages = 1
     
     let paginatorLabel: UILabel = {
         let label = UILabel()
@@ -67,28 +59,24 @@ class MovieListScene: UIView {
         setupPaginatorLabel()
         setupNextButton()
         setupPreviousButton()
-        fetchMovies()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setupSearchBar() {
-        addSubview(searchBar)
-        searchBar.placeholder = "Pesquisar"
-        searchBar.sizeToFit()
-        searchBar.searchBarStyle = .prominent
-        searchBar.scopeButtonTitles = ["Todos", "Favoritos"]
-        
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(equalTo: topAnchor),
-            searchBar.leadingAnchor.constraint(equalTo: leadingAnchor),
-            searchBar.trailingAnchor.constraint(equalTo: trailingAnchor)
-        ])
-        
+    func setupScene(allMovies: [MovieModelParse], totalPages: Int) {
+        self.movies = allMovies
+        self.totalPages = totalPages
+    }
+    
+    func notFoundPage() {
+        self.movies = []
+        self.paginatorLabel.text = "Página \(currentPage)\nnão encontrada"
+    }
+    
+    func setMovies(movies: [MovieModelParse]) {
+        self.movies = movies
     }
     
     private func setupTableView() {
@@ -152,7 +140,7 @@ class MovieListScene: UIView {
             if currentPage == totalPages {
                 nextButton.isHidden = true
             }
-            fetchMovies()
+            self.controller?.fetchMovies(currentPage: self.currentPage)
         }
         
     }
@@ -166,26 +154,14 @@ class MovieListScene: UIView {
             if currentPage == totalPages-1 {
                 nextButton.isHidden = false
             }
-            fetchMovies()
-        }
-    }
-    // "https://api.themoviedb.org/3/movie/now_playing?api_key=c2e78b4a8c14e65dd6e27504e6df95ad&language=pt-BR"
-    func fetchMovies() {
-        AF.request("https://api.themoviedb.org/3/movie/now_playing?api_key=c2e78b4a8c14e65dd6e27504e6df95ad&language=pt-BR&page=\(String(self.currentPage))").validate().responseDecodable(of: Movies.self) { (response) in
-            if response.value == nil {
-                self.paginatorLabel.text = "Página \(self.currentPage)\nnão encontrada"
-            }
-            guard let movies = response.value else { return }
-            self.movies = movies.allMovies
-            self.totalPages = movies.total_pages
-            self.paginatorLabel.text = "Página \(self.currentPage)"
-            self.tableView.reloadData()
+            self.controller?.fetchMovies(currentPage: self.currentPage)
+            
         }
     }
     
 }
 
-extension MovieListScene: UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
+extension MovieListScene: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return movies.count
@@ -194,9 +170,10 @@ extension MovieListScene: UITableViewDelegate, UITableViewDataSource, UISearchBa
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cellId", for: indexPath) as! TableViewCell
         cell.movieNameLabel.text = movies[indexPath.row].title
-        //matando gatinhos
-        let url = URL(string: "https://image.tmdb.org/t/p/w500\(movies[indexPath.row].poster_path)")!
-        cell.movieImage.load(url: url) // failed to log metrics
+//        if let url = URL(string: "https://image.tmdb.org/t/p/w500\(movies[indexPath.row].poster_path)") {
+//            cell.movieImage.load(url: url) // failed to log metrics
+//        }
+        cell.movieImage.image = UIImage(data: movies[indexPath.row].poster_img)
         return cell
     }
     

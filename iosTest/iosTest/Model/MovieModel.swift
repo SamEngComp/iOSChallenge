@@ -11,7 +11,7 @@ struct Movie: Decodable {
     //let adult: Bool
     //let backdrop_path: String
     //let genre_ids: [Int]
-    //let id: Int
+    let id: Int
     //let original_language: String
     //let original_title: String
     let overview: String
@@ -27,7 +27,7 @@ struct Movie: Decodable {
         //case adult
         //case backdrop_path
         //case genre_ids
-        //case id
+        case id
         //case original_language
         //case original_title
         case overview

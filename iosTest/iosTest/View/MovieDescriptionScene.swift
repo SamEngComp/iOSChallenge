@@ -9,18 +9,16 @@ import UIKit
 
 class MovieDescriptinScene: UIView {
     
-    var navigationRef: NSLayoutYAxisAnchor?
-    
-    let movieImage: UIImageView = {
+    private let movieImage: UIImageView = {
         let imageView = UIImageView()
-        let image = UIImage(named: "azul")
+        let image = UIImage()
         imageView.image = image
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         return imageView
     }()
     
-    let movieDescriptionTextView: UITextView = {
+    private let movieDescriptionTextView: UITextView = {
         let textView = UITextView()
         textView.textColor = .black
         textView.isEditable = false
@@ -29,7 +27,7 @@ class MovieDescriptinScene: UIView {
         return textView
     }()
     
-    let titleLabel: UILabel = {
+    private let titleLabel: UILabel = {
         let label = UILabel()
         label.textColor = .black
         label.font = UIFont.boldSystemFont(ofSize: 20)
@@ -51,6 +49,18 @@ class MovieDescriptinScene: UIView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func setTitleLabel(title: String?) {
+        self.titleLabel.text = title
+    }
+    
+    func setMovieImage(data: Data) {
+        self.movieImage.image = UIImage(data: data)
+    }
+    
+    func setMovieDescriptionText(descriptionText: String?) {
+        self.movieDescriptionTextView.text = descriptionText
     }
     
     override func layoutSubviews() {
@@ -87,7 +97,7 @@ class MovieDescriptinScene: UIView {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: self.navigationRef ?? self.topAnchor),
+            titleLabel.topAnchor.constraint(equalTo: self.topAnchor),
             titleLabel.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 20),
             titleLabel.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -20),
             titleLabel.heightAnchor.constraint(equalToConstant: 50)
